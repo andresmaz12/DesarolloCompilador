@@ -1,5 +1,6 @@
 from lexico import *
 from sintacticoExt import * 
+from semantico import *
 
 codigoFuente = """
 int suma(int a, int b, int c){
