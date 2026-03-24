@@ -57,13 +57,22 @@ class Parse:
     def cuerpo(self):
         instrucciones = []
         while self.obtener_token() and self.obtener_token()[1] != '}':
-            if self.obtener_token()[1] == 'return':
+            tok = self.obtener_token()[1]
+            if tok == 'return':
                 instrucciones.append(self.retorno())
-            elif self.obtener_token()[1] == 'cout':   # <-- agregar esto
+            elif tok in ('printf', 'puts'):
                 instrucciones.append(self.impresionPantalla())
+            elif tok == 'if':
+                instrucciones.append(self.condicional())
+            elif tok == 'while':
+                instrucciones.append(self.cicloWhile())
+            elif tok == 'for':
+                instrucciones.append(self.cicloFor())
+            elif tok == 'scanf':
+                instrucciones.append(self.entradaUsuario())
             else:
                 instrucciones.append(self.asignacion())
-        return instrucciones  # <-- aquí afuera
+        return instrucciones
 
     def asignacion(self):
         #Gramática pra la estructura de asignación
@@ -92,6 +101,8 @@ class Parse:
         token = self.obtener_token()
         if token and token[0] == "NUMBER":
             return NodoNumero(self.coincidir("NUMBER"))
+        elif token and token[0] == "STRING":        
+            return NodoString(self.coincidir("STRING"))
         elif token and token[0] == "IDENTIFIER":
             identificador = self.coincidir("IDENTIFIER")
             if self.obtener_token() and self.obtener_token()[1] == "(":
@@ -103,23 +114,71 @@ class Parse:
                 return NodoIdent(identificador)
         else:
             raise SyntaxError(f"Expresión no válida: {token}")
-        
+    
     def impresionPantalla(self):
-        keyword = self.coincidir("KEYWORD")  # consume 'cout'
-        self.coincidir("OPERATOR")           # consume '<<'
+        keyword = self.coincidir("KEYWORD")   # consume 'printf' o 'puts'
+        self.coincidir("DELIMITER")           # consume '('
         expresion = self.expresion()
-        delimitador_apertura = self.coincidir("DELIMITER")
-        char_cierre = delimitador_apertura[1]
+        self.coincidir("DELIMITER")           # consume ')'
+        self.coincidir("DELIMITER")           # consume ';'
+        return NodoImprimir(keyword, [expresion])
 
-        contenido = []
-        while self.obtener_token() and self.obtener_token()[1] != char_cierre: 
-            contenido.append(self.obtener_token()[1])
-            self.pos += 1
+    def condicional(self):
+        self.coincidir("KEYWORD")        # consume 'if'
+        self.coincidir("DELIMITER")      # consume '('
+        condicion = self.expresion()     # la condición: x > 5, a == b, etc.
+        self.coincidir("DELIMITER")      # consume ')'
+        self.coincidir("DELIMITER")      # consume '{'
+        cuerpo_if = self.cuerpo()
+        self.coincidir("DELIMITER")      # consume '}'
 
-        self.coincidir("DELIMITIER") #Consume cierre ' o "
-        self.coincidir("DELIMITIER") #Consume ;
-        return NodoInstruccion(keyword, [" ".join(contenido)])
+        cuerpo_else = []
+        if self.obtener_token() and self.obtener_token()[1] == 'else':
+            self.coincidir("KEYWORD")    # consume 'else'
+            self.coincidir("DELIMITER")  # consume '{'
+            cuerpo_else = self.cuerpo()
+            self.coincidir("DELIMITER")  # consume '}'
 
+        return NodoCondicional(condicion, cuerpo_if, cuerpo_else)
+
+    def cicloWhile(self):
+        self.coincidir("KEYWORD")        # consume 'while'
+        self.coincidir("DELIMITER")      # consume '('
+        condicion = self.expresion()
+        self.coincidir("DELIMITER")      # consume ')'
+        self.coincidir("DELIMITER")      # consume '{'
+        cuerpo = self.cuerpo()
+        self.coincidir("DELIMITER")      # consume '}'
+        return NodoWhile(condicion, cuerpo)
+    
+    def cicloFor(self):
+        self.coincidir("KEYWORD")        # consume 'for'
+        self.coincidir("DELIMITER")      # consume '('
+        inicio = self.asignacion()       # int i = 0;  -- ya consume el ';'
+        condicion = self.expresion()
+        self.coincidir("DELIMITER")      # consume ';'
+        incremento = self.incremento()   # i++ o i = i + 1
+        self.coincidir("DELIMITER")      # consume ')'
+        self.coincidir("DELIMITER")      # consume '{'
+        cuerpo = self.cuerpo()
+        self.coincidir("DELIMITER")      # consume '}'
+        return NodoFor(inicio, condicion, incremento, cuerpo)
+
+    def incremento(self):
+        # Maneja i++ o i--
+        nombre = self.coincidir("IDENTIFIER")
+        operador = self.coincidir("OPERATOR")  # ++ o --
+        return NodoIncremento(nombre, operador)
+    
+    def entradaUsuario(self):
+        keyword = self.coincidir("KEYWORD")   # consume 'scanf'
+        self.coincidir("DELIMITER")           # consume '('
+        formato = self.expresion()            # el string de formato "%d"
+        self.coincidir("DELIMITER")           # consume ','  -- ajusta si usas OPERATOR
+        variable = self.coincidir("IDENTIFIER")
+        self.coincidir("DELIMITER")           # consume ')'
+        self.coincidir("DELIMITER")           # consume ';'
+        return NodoEntrada(keyword, formato, variable)
 
     def llamadaFuncion(self):
         argumentos = []

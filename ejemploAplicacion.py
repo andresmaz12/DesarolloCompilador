@@ -1,14 +1,15 @@
 from lexico import *
-from sintactico import * 
+from sintacticoExt import * 
 
 codigoFuente = """
 int suma(int a, int b, int c){
     return a + b;
-    cout << "1";
+    printf(c);
 }
 
 int main(){
-    int hola = 3;
+    int resultado = suma(3, 5);
+    return 0;
 }
 """
 
@@ -37,6 +38,8 @@ try:
     #Traducir a ruby 
     print("========= Ruby ===============")
     print(arbol_ast.traducirRuby())
+    print("==========Asembler=========")
+    print(arbol_ast.generarCodigo)
 except SyntaxError as e:
     print(f"Error sintáctico: {e}")
 
