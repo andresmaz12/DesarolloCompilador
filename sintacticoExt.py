@@ -27,7 +27,7 @@ class Parse:
 
     def funcion(self):
         #Gramatica para una función: int IDENTIFIER (ind IDENTIFIER) {Cuerpo}
-        tipo_retorno = self.coincidir('KEYWORD') # Retorna int
+        tipo = self.coincidir('KEYWORD') # Retorna int
         nombre_funcion = self.coincidir('IDENTIFIER')
         self.coincidir('DELIMITER')
         if nombre_funcion[1] == 'main':
@@ -38,7 +38,7 @@ class Parse:
         self.coincidir('DELIMITER')
         cuerpo = self.cuerpo()
         self.coincidir('DELIMITER')
-        return NodoFuncion(tipo_retorno, nombre_funcion, parametros, cuerpo)
+        return NodoFuncion(tipo, nombre_funcion, parametros, cuerpo)
 
     def parametros(self):
         lista_parametros = []
