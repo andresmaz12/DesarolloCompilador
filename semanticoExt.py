@@ -57,4 +57,4 @@ class AnalizadorSemantico:
         elif isinstance(nodo, NodoNumero):
             return 'int' if '.' not in nodo.valor[1] else 'float'
         elif isinstance(nodo, NodoLlamadaFuncion):
-            tipo, parametros = self.tablaSimbolos.obtenerInfoFuncion(nodo.nombre)
+            tipo, parametros = self.tablaSimbolos.obtenerInfoFuncion(nodo.nombre[1])
