@@ -128,6 +128,46 @@ class NodoOperacion(NodoAST):
            coidigo.append("    div   eax, ebx")
 
         return "\n".join(coidigo)
+    
+    def optimizar(self):
+        if isinstance(self.izquierda, NodoOperacion):
+            self.izquierda.optimizar()
+        else:
+            izquierda = self.izquierda
+
+        if isinstance(self.derecha, NodoOperacion):
+            self.derecha.optimizar()
+        else:
+            derecha = self.derecha
+
+        #Si ambos nodos son números evaluamos la operación
+        if isinstance(izquierda, NodoNumero) and isinstance(derecha, NodoNumero):
+            if self.operador == "+":
+                return NodoNumero(izquierda.valor + derecha.valor)  
+            elif self.operador == "-":
+                return NodoNumero(izquierda.valor - derecha.valor) 
+            elif self.operador == "*":
+                return NodoNumero(izquierda.valor * derecha.valor)  
+            elif self.operador == "/":
+                if derecha.valor != 0:
+                    return NodoNumero(izquierda.valor / derecha.valor)   
+
+        #Simplificacion algebraica
+        if isinstance(derecha, NodoNumero) and derecha.valor == "1" and self.operador == "*":
+            return izquierda
+        if isinstance(izquierda, NodoNumero) and izquierda.valor == "1" and self.operador == "*":
+            return derecha
+        if isinstance(derecha, NodoNumero) and derecha.valor == "0" and self.operador == "+":
+            return izquierda
+        if isinstance(izquierda, NodoNumero) and izquierda.valor == "0" and self.operador == "+":
+            return derecha
+        if isinstance(derecha, NodoNumero) and derecha.valor == "0" and self.operador == "/":
+            raise Exception("Error: Es matematicamente imposible dividir un numero entre 0")
+        if izquierda.valor == derecha.valor and self.operador == "/":
+            return 1
+        
+        # SI no se puede optimizar mas se devuelve la expresion 
+        return NodoOperacion(izquierda, self.operador, derecha)
 
 class NodoRetorno(NodoAST):
     #Nodo para representar el retorno
