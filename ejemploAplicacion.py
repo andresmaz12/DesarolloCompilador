@@ -45,6 +45,13 @@ except SyntaxError as e:
     print(f"Error sintáctico: {e}")
 
 
-
-
+def compliarCodigo(self): 
+    #generar el codigo en ensamblador
+    codigo_asm = NodoPrograma.generarCodigo()
+    print(codigo_asm)
+    text_file = open("ejasmcompiladores.asm", "w")
+    text_file.write(codigo_asm)
+    text_file.close()
+    subprocess.run(["nasm", "-f", "elf", "ejasmcompiladores.asm"])
+    subprocess.run(["ld", "-m", "elf_i386", "ejasmcompiladores.o", "-o", "ejasmcompiladores."])
 

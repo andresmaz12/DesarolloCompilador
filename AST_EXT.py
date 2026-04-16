@@ -142,33 +142,38 @@ class NodoOperacion(NodoAST):
 
         #Si ambos nodos son números evaluamos la operación
         if isinstance(izquierda, NodoNumero) and isinstance(derecha, NodoNumero):
-            if self.operador == "+":
-                return NodoNumero(izquierda.valor + derecha.valor)  
+            izq = int(izquierda.valor[1])
+            der = der(derecha.valor[1])
+            if self.operador[1] == "+":
+               valor = izq + der
             elif self.operador == "-":
-                return NodoNumero(izquierda.valor - derecha.valor) 
+                valor = izq - der
             elif self.operador == "*":
-                return NodoNumero(izquierda.valor * derecha.valor)  
+                valor = izq * der 
             elif self.operador == "/":
-                if derecha.valor != 0:
-                    return NodoNumero(izquierda.valor / derecha.valor)   
+                if der != 0:
+                    valor = izq / der
+                else:
+                    raise Exception ("Error: Es matematicamente imposible dividir un numero entre 0") 
+            return NodoNumero(('NUMBER', str(valor))) 
 
         #Simplificacion algebraica
-        if isinstance(derecha, NodoNumero) and derecha.valor == "1" and self.operador == "*":
+        if isinstance(derecha, NodoNumero) and int(derecha.valor[1]) == "1" and self.operador[1] == "*":
             return izquierda
-        if isinstance(izquierda, NodoNumero) and izquierda.valor == "1" and self.operador == "*":
+        if isinstance(izquierda, NodoNumero) and int(izquierda.valor[1]) == "1" and self.operador[1] == "*":
             return derecha
-        if isinstance(derecha, NodoNumero) and derecha.valor == "0" and self.operador == "+":
+        if isinstance(derecha, NodoNumero) and int(derecha.valor[1]) == "0" and self.operador[1] == "+":
             return izquierda
-        if isinstance(izquierda, NodoNumero) and izquierda.valor == "0" and self.operador == "+":
+        if isinstance(izquierda, NodoNumero) and int(izquierda.valor[1]) == "0" and self.operador[1] == "+":
             return derecha
-        if isinstance(derecha, NodoNumero) and derecha.valor == "0" and self.operador == "/":
+        if isinstance(derecha, NodoNumero) and int(derecha.valor[1]) == "0" and self.operador[1] == "/":
             raise Exception("Error: Es matematicamente imposible dividir un numero entre 0")
-        if izquierda.valor == derecha.valor and self.operador == "/":
+        if izquierda.valor[1] == derecha.valor[1] and self.operador[1] == "/":
             return 1
         
         # SI no se puede optimizar mas se devuelve la expresion 
-        return NodoOperacion(izquierda, self.operador, derecha)
-
+        return NodoOperacion(izquierda, self.operador[1], derecha)
+    
 class NodoRetorno(NodoAST):
     #Nodo para representar el retorno
     def __init__(self, expresion ):
