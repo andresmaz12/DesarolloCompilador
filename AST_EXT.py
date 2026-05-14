@@ -73,6 +73,9 @@ class NodoFuncion(NodoAST):
         return codigo
               
 
+class NodoBloque(NodoAST):
+    pass
+
 class NodoParametro(NodoAST):
     def __init__(self, tipo, nombre):
         self.tipo = tipo
